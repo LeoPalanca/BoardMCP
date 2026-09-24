@@ -27,3 +27,7 @@ This tests MCP stdio initialization, tool discovery, all three live reads, and i
 ## Original Public API
 
 The Board 15.1 Public API still fails with HTTP 500 due to unresolved IImpersonificationService. The MCP now uses Firefox. See BOARD-API-ISSUE.md. Original PowerShell setup/diagnostic scripts remain for retesting after a Board repair. Their DPAPI credentials under LocalAppData/BoardMCP/client.xml are unused by the Firefox connector. Test-BoardMcp.ps1 tests the original API; Test-Mcp.cjs tests the working MCP.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
