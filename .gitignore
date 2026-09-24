@@ -1,0 +1,16 @@
+# Dependencies and local runtime output
+node_modules/
+*.log
+diagnostic-result.json
+restart-result.json
+smoke-test.json
+
+# Credentials and browser sessions must stay local
+.env
+.env.*
+client.xml
+*.clixml
+browser-profile/
+firefox-profile/
+credentials/
+secrets/
