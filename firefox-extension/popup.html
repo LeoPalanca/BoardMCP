@@ -11,7 +11,7 @@
     <header>
       <div class="eyebrow">READ ONLY · 0.1.0</div>
       <h1>Board Snapshot</h1>
-      <p class="intro">Choose where you’ll review the scan, then inspect the active Firefox tab.</p>
+      <p class="intro">Choose an agent, inventory this Board site, and select what to read.</p>
     </header>
 
     <section class="agent-card" aria-labelledby="agent-heading">
@@ -24,8 +24,8 @@
       <input id="custom-agent" type="text" maxlength="80" placeholder="Agent name or label" hidden>
     </section>
 
-    <button class="primary" id="analyze" type="button">Analyze active tab</button>
-    <p id="status" class="status" role="status" aria-live="polite">The scan runs only after you click Analyze.</p>
+    <button class="primary" id="analyze" type="button">Analyze</button>
+    <p id="status" class="status" role="status" aria-live="polite">Analyze reads the model and capsule lists from this signed-in site.</p>
 
     <section id="results" hidden>
       <div class="page-card">
@@ -51,14 +51,14 @@
         <div id="capsules-list" class="entry-list"></div>
       </section>
 
-      <p class="scope-note">This first pass inspects links and labels on the active page only. Checked items mark a future deep-scan scope; this version does not navigate or scan their contents.</p>
+      <p class="scope-note">Analyze checks the model and capsule lists in temporary background tabs. Select what to read deeply, then start the selected read. Firefox asks for access to this site the first time.</p>
       <div class="actions">
-        <button id="copy" type="button">Copy report for agent</button>
+        <button id="start-read" class="primary" type="button">Start agent read</button>
         <button id="download" type="button">Download .md</button>
       </div>
     </section>
 
-    <footer>Nothing is sent to Claude, Codex, or another service. Reports stay in this Firefox session until you copy or download them.</footer>
+    <footer>The agent choice labels the report. The extension does not launch Claude, Codex, or another service; download the read report to give it to your agent.</footer>
   </main>
   <script src="popup.js"></script>
 </body>

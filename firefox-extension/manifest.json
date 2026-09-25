@@ -2,10 +2,11 @@
   "manifest_version": 3,
   "name": "Board Snapshot Assistant",
   "version": "0.1.0",
-  "description": "Read-only initial inventory of the active Board page for an AI-assisted review.",
-  "permissions": ["activeTab", "scripting", "storage", "clipboardWrite"],
+  "description": "Read-only Board inventory and selected-scope reports for an AI-assisted review.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "optional_host_permissions": ["*://*/*"],
   "action": {
-    "default_title": "Analyze the active page",
+    "default_title": "Analyze Board",
     "default_popup": "popup.html"
   },
   "browser_specific_settings": {

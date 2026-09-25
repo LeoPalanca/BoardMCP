@@ -23,11 +23,11 @@ Column labels follow the Board session language. Grid reads report detected filt
 
 ## Firefox extension: initial read-only inventory
 
-The proof-of-concept extension is in [`firefox-extension/`](firefox-extension/). Load it temporarily in the Firefox profile where you are signed in to Board. It works from the active page's origin instead of assuming `localhost`; it uses a user-clicked `activeTab` grant, so no permanent access to every host is requested. See its [README](firefox-extension/README.md) for setup and limits.
+The extension is in [`firefox-extension/`](firefox-extension/). Load it in the Firefox profile where you are signed in to Board. **Analyze** requests access to only the active page's origin, then reads the Data Models and Capsules lists in background tabs without moving the open page. See its [README](firefox-extension/README.md) for setup and permission details.
 
-The initial pass inventories Data Model and Capsule routes visible on the current page, lets you select candidates for a later deep scan, and copies or downloads a Markdown handoff labeled for Claude, Codex, or a custom agent. It does not call those agents, navigate to other pages, or edit Board data.
+After inventory, select Data Models and Capsules and choose **Start agent read**. It reads visible Entity members, Cube metadata, Relationships analysis, and selected Capsule page contents, then lets you download a Markdown report labeled for Claude, Codex, or a custom agent. It does not call those agents or edit Board data. Paginated and virtualized content may be partial.
 
-Next, extend the selected scope into a read-only deep scan of model and capsule structure, Entity members, hierarchy and occurrence analysis, Cube dimensions, and capsule DataView values. Export Markdown for people and a structured JSON snapshot that preserves Board identifiers, selections, and completeness details. DataView values can be filtered, aggregated, or limited by Board's rendered layout, so reports must not claim a full stored-cell export. The current connector remains read-only; any future edit capability will be a separate addition.
+Future improvements: improve coverage of paginated and virtualized grids, capture full DataView cell layouts with filters and dimensions, and add a structured JSON snapshot with explicit completeness markers. The Markdown report remains a human-readable handoff. The current connector and extension remain read-only; any future edit capability will be a separate addition.
 
 ## Verification
 
