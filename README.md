@@ -1,23 +1,24 @@
 # Local Board MCP
 
-Working read-only MCP for local Board, using your authenticated Firefox session. Version 1.2.0 is registered in Codex as board-local; Node 22+ required. No npm packages required.
+Working read-only MCP for local Board, using your authenticated Firefox session. Version 1.3.0 adds recursive Capsule inventory; restart Codex after updating the registered board-local server. Node 22+ required. No npm packages required.
 
 ## Use
 
 1. Run Open-BoardFirefox.ps1 in your normal Windows account. It opens a separate Firefox profile under %LOCALAPPDATA%/BoardMCP/firefox-profile.
 2. Sign in to Board with your regular account and leave that Firefox window open. Sign in again there if the session expires.
-3. Restart Codex if board-local tools are not loaded. Ask it to list Board models, entities, members, relationships, cubes, or read cube values from existing capsule screens.
+3. Restart Codex if board-local tools are not loaded. Ask it to list Board models, Capsules (including folders), entities, members, relationships, cubes, or read cube values from existing capsule screens.
 
 The connector navigates that dedicated window. Use your usual browser for other work during reads. Firefox automation listens on 127.0.0.1:9228, verified 2026-09-24. Session information stays in Firefox; the connector does not extract passwords or tokens.
 
 ## Tools and limits
 
 - list_models: model links rendered on the authenticated Data Models page.
+- list_capsules: Capsule screens discovered in the root list and nested folders, with folder paths. This lists Capsule routes; it does not inspect their contents.
 - list_entities(model): entity grid metadata, including member counts and physical names.
 - list_cubes(model): cube grid metadata, including types, versions and file sizes.
 - list_entity_members(model, entity?): member codes, descriptions, and additional rendered fields; omit entity to read each Entity.
 - list_relationships(model): parent-child hierarchy edges from the Relationships tree.
-- read_cube_data(model, cube): values returned by existing capsule DataView screens for the selected Cube, along with screen dimensions and row/column labels.
+- read_cube_data(model, cube): values returned by existing capsule DataView screens for the selected Cube, including screens discovered in nested folders, along with screen dimensions and row/column labels.
 
 Column labels follow the Board session language. Grid reads report detected filters, paging, and possible additional rows. Cube values come from existing DataView layouts and can reflect their filters, selections, aggregations, and visible dimensions; they are not a guaranteed dump of every stored cell. A Cube with no matching screen returns no view results, which does not by itself prove the Cube is empty. No model edits or procedures are exposed. Requests are serialized within each MCP process; avoid simultaneous reads from multiple MCP processes.
 

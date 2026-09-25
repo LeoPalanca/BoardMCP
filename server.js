@@ -2,6 +2,7 @@ const readline = require('node:readline');
 const { callBoard } = require('./browser-board.cjs');
 const definitions = [
   { name: 'list_models', description: 'List local Board Data Models. Read-only metadata via the dedicated signed-in Firefox window. Navigates that window; returns rendered UI rows and completeness indicators.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true } },
+  { name: 'list_capsules', description: 'List Board Capsules recursively, including folder paths. Read-only rendered UI inventory via the dedicated signed-in Firefox window.', inputSchema: { type: 'object', properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true } },
   { name: 'list_entities', description: 'List Entities in a Board Data Model. Read-only metadata via the dedicated signed-in Firefox window. Navigates that window; returns rendered UI rows and completeness indicators.', inputSchema: { type: 'object', properties: { model: { type: 'string' } }, required: ['model'], additionalProperties: false }, annotations: { readOnlyHint: true } },
   { name: 'list_cubes', description: 'List Cubes in a Board Data Model. Read-only metadata via the dedicated signed-in Firefox window. Navigates that window; returns rendered UI rows and completeness indicators.', inputSchema: { type: 'object', properties: { model: { type: 'string' } }, required: ['model'], additionalProperties: false }, annotations: { readOnlyHint: true } },
   { name: 'list_entity_members', description: 'Read member codes, descriptions, and other rendered member fields for Entities in a Board Data Model. Omit entity to read every Entity. Read-only via the dedicated signed-in Firefox window.', inputSchema: { type: 'object', properties: { model: { type: 'string' }, entity: { type: 'string' } }, required: ['model'], additionalProperties: false }, annotations: { readOnlyHint: true } },
@@ -14,7 +15,7 @@ async function handle(message) {
   if (!message || message.id === undefined || !message.method) return;
   const { id, method, params = {} } = message;
   if (method === 'initialize') {
-    send({ jsonrpc: '2.0', id, result: { protocolVersion: params.protocolVersion || '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'board-local', version: '1.2.0' } } });
+    send({ jsonrpc: '2.0', id, result: { protocolVersion: params.protocolVersion || '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'board-local', version: '1.3.0' } } });
     return;
   }
   if (method === 'ping') return send({ jsonrpc: '2.0', id, result: {} });
@@ -24,7 +25,7 @@ async function handle(message) {
     const name = params.name;
     if (!definitions.some((tool) => tool.name === name)) throw new Error('Unknown Board tool');
     const model = params.arguments?.model;
-    if (name !== 'list_models' && (typeof model !== 'string' || !model.trim())) throw new Error('A Data Model name is required');
+    if (!['list_models', 'list_capsules'].includes(name) && (typeof model !== 'string' || !model.trim())) throw new Error('A Data Model name is required');
     const args = params.arguments || {};
     if (name === 'read_cube_data' && (typeof args.cube !== 'string' || !args.cube.trim())) throw new Error('A Cube name is required');
     const data = await callBoard(name, model, args);

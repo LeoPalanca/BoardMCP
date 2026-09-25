@@ -3,8 +3,8 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 let queue = Promise.resolve();
 
 async function readBoard(operation, model, options = {}) {
-  if (!['list_models', 'list_entities', 'list_cubes', 'list_entity_members', 'list_relationships', 'read_cube_data'].includes(operation)) throw new Error('Unknown Board operation');
-  if (operation !== 'list_models' && (typeof model !== 'string' || !model.trim() || /[\\/\x00-\x1f]/.test(model) || ['.', '..'].includes(model))) throw new Error('Invalid Data Model name');
+  if (!['list_models', 'list_entities', 'list_cubes', 'list_capsules', 'list_entity_members', 'list_relationships', 'read_cube_data'].includes(operation)) throw new Error('Unknown Board operation');
+  if (!['list_models', 'list_capsules'].includes(operation) && (typeof model !== 'string' || !model.trim() || /[\\/\x00-\x1f]/.test(model) || ['.', '..'].includes(model))) throw new Error('Invalid Data Model name');
   if (operation === 'list_entity_members' && options.entity !== undefined && !validBoardName(options.entity)) throw new Error('Invalid Entity name');
   if (operation === 'read_cube_data' && !validBoardName(options.cube)) throw new Error('A Cube name is required');
   if (['list_entity_members', 'list_relationships', 'read_cube_data'].includes(operation)) return readExtendedBoard(operation, model, options);
@@ -14,6 +14,7 @@ async function readBoard(operation, model, options = {}) {
     const context = await client.boardContext();
     const language = await client.evaluate(context, 'location.pathname.split("/")[1]');
     if (!/^[a-z]{2}(?:-[A-Za-z]{2})?$/.test(language)) throw new Error('Sign in to Board in the dedicated Firefox window.');
+    if (operation === 'list_capsules') return await readCapsules(client, context, language);
     const base = `/${language}/data-models`;
     const pagePath = operation === 'list_models' ? base : `${base}/${encodeURIComponent(model)}/${operation === 'list_entities' ? 'entities' : 'cubes'}`;
     await client.send('browsingContext.navigate', { context, url: `http://localhost${pagePath}`, wait: 'complete' });
@@ -183,10 +184,8 @@ function normalizeLayoutResult(data) {
 async function readCubeData(client, context, language, model, cube) {
   await client.send('session.subscribe', {events:['network.responseCompleted']});
   const collector=await client.send('network.addDataCollector',{contexts:[context],dataTypes:['response'],maxEncodedDataSize:10000000});
-  const listPath=`/${language}/capsules`;
-  await client.send('browsingContext.navigate',{context,url:`http://localhost${listPath}`,wait:'complete'});
-  await waitForPage(client,context,listPath,`[...document.querySelectorAll('a[href]')].some(a=>a.getAttribute('href').includes('.bcps/screen'))`);
-  const routes=JSON.parse(await client.evaluate(context,`JSON.stringify([...new Set([...document.querySelectorAll('a[href]')].map(a=>a.getAttribute('href')).filter(h=>h&&h.startsWith(${JSON.stringify(`/${language}/capsules/`)})&&h.includes('.bcps/screen')))])`));
+  const inventory=await readCapsules(client,context,language);
+  const routes=inventory.capsules.map(item=>item.route);
   const views=[];const failures=[];const handled=new Set();
   for(const route of routes){
     const before=new Set(client.events.filter(e=>e.method==='network.responseCompleted').map(e=>e.params?.request?.request));
@@ -208,11 +207,60 @@ async function readCubeData(client, context, language, model, cube) {
         let data;try{data=JSON.parse(raw)}catch{continue;}
         const layout=normalizeLayoutResult(data);
         if(layout.databaseName!==model||!layout.blocks.some(b=>String(b.blockName).toLocaleLowerCase()===cube.toLocaleLowerCase()))continue;
-        views.push({capsule:decodeURIComponent(route.split('/').filter(Boolean).at(-2)||''),...layout});
+        const capsule=inventory.capsules.find(item=>item.route===route);
+        views.push({capsule:capsule?.name||'',folder:capsule?.folder||'',route,...layout});
       }
-    }catch(error){failures.push({capsule:decodeURIComponent(route.split('/').filter(Boolean).at(-2)||''),message:error.message});}
+    }catch(error){
+      const capsule=inventory.capsules.find(item=>item.route===route);
+      failures.push({capsule:capsule?.name||'',folder:capsule?.folder||'',route,message:error.message});
+    }
   }
-  return {source:'Board DataView results from existing authenticated capsule screens',operation:'read_cube_data',model,cube,views,count:views.length,screenCount:routes.length,failures,scope:'Returns cube cells present in existing DataView layouts. These may be filtered or aggregated by each screen; this is not a guaranteed dump of every stored cube cell. No matching DataView means Board exposed no screen values for this cube.'};
+  return {source:'Board DataView results from existing authenticated capsule screens',operation:'read_cube_data',model,cube,views,count:views.length,screenCount:routes.length,folderCount:inventory.folderCount,foldersScanned:inventory.foldersScanned,failures,scope:'Scans the root Capsules list and rendered folders recursively, then returns cube cells present in matching existing DataView layouts. These may be filtered or aggregated by each screen; this is not a guaranteed dump of every stored cube cell. No matching DataView means Board exposed no screen values for this cube.'};
+}
+
+async function readCapsules(client, context, language) {
+  const listPath=`/${language}/capsules`;
+  const pending=[listPath];
+  const visited=new Set();
+  const folders=new Set();
+  const capsules=new Map();
+  while(pending.length){
+    const pagePath=pending.shift();
+    if(visited.has(pagePath))continue;
+    visited.add(pagePath);
+    await client.send('browsingContext.navigate',{context,url:`http://localhost${pagePath}`,wait:'complete'});
+    await waitForPage(client,context,listPath,`document.querySelectorAll('[role="row"][aria-level]').length>0`);
+    const entries=JSON.parse(await client.evaluate(context,`JSON.stringify((()=>{
+      const listPath=${JSON.stringify(listPath)};
+      const folders=[];const capsules=[];
+      for(const anchor of document.querySelectorAll('a[href]')){
+        let url;try{url=new URL(anchor.href,location.href)}catch{continue}
+        if(url.origin!==location.origin||url.pathname!==listPath)continue;
+        const folder=url.searchParams.get('path');
+        if(folder)folders.push({path:folder,route:url.pathname+url.search});
+      }
+      for(const anchor of document.querySelectorAll('a[href]')){
+        let url;try{url=new URL(anchor.href,location.href)}catch{continue}
+        if(url.origin!==location.origin||!url.pathname.startsWith(listPath+'/')||!url.pathname.includes('.bcps/screen'))continue;
+        const assetPath=decodeURIComponent(url.pathname.slice(listPath.length+1)).replace(/\\.bcps\\/screen.*$/i,'');
+        const separator=String.fromCharCode(92);
+        const boundary=assetPath.lastIndexOf(separator);
+        const name=assetPath.slice(boundary+1);
+        const folder=boundary<0?'':assetPath.slice(0,boundary);
+        capsules.push({name,folder,route:url.pathname+url.search});
+      }
+      return {folders,capsules};
+    })())`));
+    for(const folder of entries.folders){
+      folders.add(folder.path);
+      if(!visited.has(folder.route))pending.push(folder.route);
+    }
+    for(const capsule of entries.capsules)capsules.set(capsule.route,capsule);
+  }
+  const folderList=[...folders].sort((a,b)=>a.localeCompare(b));
+  const items=[...capsules.values()].sort((a,b)=>a.folder.localeCompare(b.folder)||a.name.localeCompare(b.name));
+  const foldersScanned=[...visited].map(route=>route===listPath?'':new URL(`http://localhost${route}`).searchParams.get('path')||'').filter(Boolean);
+  return {source:'Board authenticated Firefox UI',operation:'list_capsules',url:`http://localhost${listPath}`,capsules:items,count:items.length,folders:folderList,folderCount:folderList.length,foldersScanned,scope:'Rendered Capsule links from the root Capsules list and every discoverable folder page. Folder contents are traversed through Board list navigation; this does not read Capsule screen data.'};
 }
 
 module.exports.callBoard = (operation, model, options = {}) => {
