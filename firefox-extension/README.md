@@ -2,6 +2,8 @@
 
 A local, read-only Firefox extension for reviewing Board in the profile where you are already signed in. It does not assume `localhost`, does not navigate the active tab, and does not send page content to Claude, Codex, or any remote service.
 
+The popup credits the extension to Leonardo Palanca.
+
 ## What it does
 
 - Lets you choose Claude, Codex, or a personalized agent label. The selection is stored in Firefox extension storage; it does not authenticate to or call that agent.

@@ -30,6 +30,49 @@ After inventory, expand the collapsed Data Models and Capsules lists to select a
 
 Future improvements: improve coverage of paginated and virtualized grids, capture full DataView cell layouts with filters and dimensions, and add a structured JSON snapshot with explicit completeness markers. The Markdown report remains a human-readable handoff. The current connector and extension remain read-only; any future edit capability will be a separate addition.
 
+## Future desktop app (planned, not implemented)
+
+The longer-term direction is a local desktop chat app that can start a Codex or Claude coding-agent harness and give the selected agent access to Board through the read-only MCP tools. The Firefox extension remains the current inventory and report workflow; this section describes a future design only.
+
+### Proposed design
+
+- **Desktop UI:** Electron with React, reusing the project's Node.js environment. A chat view streams agent responses and tool activity, with a Board scope panel for model and Capsule selection.
+- **Local broker:** The Electron main process starts and supervises the chosen local agent and its MCP connection. The renderer communicates with the broker through a small, explicit IPC interface.
+- **Codex:** Integrate through the supported Codex App Server protocol, which provides a JSON-RPC interface for custom clients and streamed events. See the [Codex App Server documentation](https://developers.openai.com/codex/app-server).
+- **Claude:** Integrate through the Claude Agent SDK or Claude Code's streaming CLI interface. See the [Claude Agent SDK documentation](https://code.claude.com/docs/en/agent-sdk/overview) and [CLI reference](https://code.claude.com/docs/en/cli-usage).
+- **Board access:** Configure the selected agent to use the existing Board MCP capabilities. Keep the current Firefox-backed login and read-only tools for the first version, and serialize browser reads so concurrent agent sessions cannot navigate the same Board session at once.
+
+### Intended user flow
+
+1. Choose Codex or Claude and start a local agent session.
+2. Run an initial Board inventory to discover Data Models and Capsules.
+3. Select the models and Capsules to inspect, or choose a read-all action.
+4. Follow agent responses, Board tool calls, and read progress in the chat UI.
+5. Save a Markdown report and a structured JSON snapshot with scope, timestamps, and completeness limits.
+
+### Board read report specification
+
+Every selected route should produce a page record, even when extraction finds no content. Include the Board site, route and URL, Data Model or Capsule identity, read timestamp, extraction status, and warnings. Use explicit statuses such as `complete`, `partial`, `empty`, `unavailable`, and `error`; do not leave a section blank or treat “no rows detected” as proof that Board contains no data. Markdown should be easy to read, while JSON should preserve the same records and status details for later agent use.
+
+For each page type, capture:
+
+- **Cubes page:** each visible Cube's name, Board identifier when available, type, version, file size, and route. Record detected filters, paging, and row counts. If the page loads but no Cube rows are extracted, report that the inventory is unresolved and include the extraction status instead of silently implying the model has no Cubes.
+- **Relationships page:** hierarchy parent-child edges and counts; the full visible Board Analyze findings, including issue names and affected members; and any single-occurrence relationship rows and counts. Record separately whether each section loaded, had rows, was empty, or could not be read. “No hierarchy rows detected” is an observation about the scan, not a verified absence of relationships.
+- **Capsule screen:** Capsule and folder identity, screen name and URL, headings, visible text and tables, and any rendered DataView with row/column labels, values, dimensions, filters, and selections. Mark pagination, virtualized content, unavailable tables, and other limits. A report containing only the page title and URL must be marked incomplete.
+- **Entity pages:** entity name and physical name, member count, visible member codes/descriptions and other fields, plus paging and filters. Distinguish a confirmed empty entity from member rows the scan could not retrieve.
+
+For example, a report that contains only `LucaTest25 / cubes` and its URL, `No hierarchy rows detected` with an empty Analyze section, or a Capsule title and URL does not yet satisfy this specification. Those sections need either extracted content or a clear partial/unavailable result with the reason. This is a future reporting requirement; the current extension and MCP behavior have not been changed here.
+
+### Suggested implementation sequence
+
+1. Create the Electron chat shell and a provider interface for starting, continuing, and stopping agent sessions.
+2. Add one provider at a time, beginning with Codex App Server and then Claude's SDK or streaming CLI.
+3. Add the Board inventory panel and connect the current read-only MCP tools.
+4. Add selection-scoped reads, progress and error reporting, and Markdown/JSON exports.
+5. Consider Board editing only as a separate future capability with explicit per-action approval.
+
+The first desktop version should use the authenticated Firefox profile already managed by BoardMCP. Reading an arbitrary Firefox window would need a separate browser integration, such as an extension-to-desktop native messaging bridge. Do not assume the app can reuse a user's CLI authentication until each provider's local setup has been confirmed.
+
 ## Verification
 
 Run: node Test-Mcp.cjs

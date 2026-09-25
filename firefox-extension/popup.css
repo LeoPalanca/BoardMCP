@@ -123,3 +123,5 @@ details[open] > .section-heading::before { content: "−"; }
 .read-progress { max-height: 120px; margin: 5px 0 0; padding: 0 0 0 26px; overflow: auto; color: var(--muted); font-size: 11px; }
 .actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
 footer { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 10px; }
+footer p { margin: 0; }
+footer .credit { margin-top: 8px; color: var(--ink); font-weight: 700; }
