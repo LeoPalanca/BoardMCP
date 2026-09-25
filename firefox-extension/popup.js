@@ -301,6 +301,34 @@ function collectSelection() {
     .map(input => lastScan.capsules[Number(input.dataset.index)]?.url).filter(Boolean);
 }
 
+function updateSelectionSummary() {
+  if (!lastScan) return;
+  collectSelection();
+  const models = lastScan.checkedModels.length;
+  const capsules = lastScan.checkedCapsules.length;
+  byId('selection-summary').textContent = `Selected: ${models} Data Model${models === 1 ? '' : 's'}, ${capsules} Capsule${capsules === 1 ? '' : 's'}.`;
+  if (!byId('start-read').disabled) {
+    byId('read-status').textContent = models || capsules
+      ? 'Selection ready. Click Start agent read to inspect it.'
+      : 'Select at least one item to begin a read.';
+    byId('read-status').dataset.state = '';
+  }
+}
+
+function setReadStatus(message, state = 'working') {
+  const status = byId('read-status');
+  status.textContent = message;
+  status.dataset.state = state;
+}
+
+function addProgress(message) {
+  const list = byId('read-progress');
+  list.hidden = false;
+  const item = document.createElement('li');
+  item.textContent = message;
+  list.append(item);
+}
+
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
 async function inspectTemporaryTab(url, inspector, args = []) {
@@ -410,6 +438,9 @@ function renderScan(scan) {
   renderEntries(byId('models-list'), scan.models, 'model', scan.checkedModels);
   renderEntries(byId('capsules-list'), scan.capsules, 'capsule', scan.checkedCapsules);
   byId('status').textContent = 'Inventory ready. Select Data Models or Capsules, then start the agent read.';
+  byId('read-progress').replaceChildren();
+  byId('read-progress').hidden = true;
+  updateSelectionSummary();
   renderReport();
 }
 
@@ -479,18 +510,21 @@ async function startAgentRead() {
   const selectedCapsules = lastScan?.capsules.filter(item => lastScan.checkedCapsules.includes(item.url)) || [];
   if (!selectedModels.length && !selectedCapsules.length) {
     byId('status').textContent = 'Select at least one Data Model or Capsule first.';
-    return;
-  }
-  const permission = await browser.permissions.contains({origins:[hostPattern(lastScan.url)]});
-  if (!permission) {
-    byId('status').textContent = 'Site access was removed. Click Analyze to grant access before starting a read.';
+    setReadStatus('Nothing selected. Check at least one Data Model or Capsule first.', 'error');
     return;
   }
   const button = byId('start-read');
   button.disabled = true;
+  const originalLabel = button.textContent;
+  button.textContent = 'Reading…';
   lastScan.deepRead = [];
   lastScan.deepReadStartedAt = new Date().toISOString();
+  byId('read-progress').replaceChildren();
+  byId('read-progress').hidden = false;
   try {
+    setReadStatus(`Starting read: ${selectedModels.length} Data Model${selectedModels.length === 1 ? '' : 's'} and ${selectedCapsules.length} Capsule${selectedCapsules.length === 1 ? '' : 's'} selected.`);
+    const permission = await browser.permissions.contains({origins:[hostPattern(lastScan.url)]});
+    if (!permission) throw new Error('Site access was removed. Click Analyze to grant access before starting a read.');
     const tasks = [];
     for (const model of selectedModels) {
       for (const page of ['entities', 'cubes', 'relationships']) {
@@ -500,21 +534,31 @@ async function startAgentRead() {
     for (const capsule of selectedCapsules) tasks.push({scopeLabel:`Capsule ${capsule.name}`, url:capsule.url, kind:'capsule'});
     for (let index = 0; index < tasks.length; index++) {
       const task = tasks[index];
-      byId('status').textContent = `Reading ${task.scopeLabel} (${index + 1}/${tasks.length})…`;
+      const progress = `Reading ${task.scopeLabel} (${index + 1}/${tasks.length})…`;
+      byId('status').textContent = progress;
+      setReadStatus(progress);
       try {
         const result = await inspectTemporaryTab(task.url, inspectSelectedPage, [task.kind]);
         if (!result?.ready) throw new Error('Board did not render this page in the available time.');
         lastScan.deepRead.push({scopeLabel:task.scopeLabel, url:task.url, ...result});
+        addProgress(`✓ ${task.scopeLabel}`);
       } catch (error) {
         lastScan.deepRead.push({scopeLabel:task.scopeLabel, url:task.url, error:error.message});
+        addProgress(`Could not read ${task.scopeLabel}: ${error.message}`);
       }
       renderReport();
     }
-    byId('status').textContent = `Read complete for ${selectedAgent()}. Download the report to review or give it to that agent; the extension does not launch agents.`;
+    const issues = lastScan.deepRead.filter(page => page.error).length;
+    const completion = `Read complete: ${tasks.length - issues} of ${tasks.length} page${tasks.length === 1 ? '' : 's'} read${issues ? `; ${issues} issue${issues === 1 ? '' : 's'}` : ''}. Markdown report is ready. Download it below for ${selectedAgent()}.`;
+    byId('status').textContent = completion;
+    setReadStatus(completion, issues ? 'error' : 'done');
   } catch (error) {
-    byId('status').textContent = `Could not complete the read: ${error.message}`;
+    const message = `Could not complete the read: ${error.message}`;
+    byId('status').textContent = message;
+    setReadStatus(message, 'error');
   } finally {
     button.disabled = false;
+    button.textContent = originalLabel;
   }
 }
 
@@ -535,7 +579,10 @@ byId('analyze').addEventListener('click', () => { void runAnalysis(); });
 byId('start-read').addEventListener('click', () => { void startAgentRead(); });
 byId('download').addEventListener('click', downloadReport);
 byId('results').addEventListener('change', event => {
-  if (event.target.matches('input[type="checkbox"]')) renderReport();
+  if (event.target.matches('input[type="checkbox"]')) {
+    updateSelectionSummary();
+    renderReport();
+  }
 });
 async function initializePopup() {
   await restoreAgent();

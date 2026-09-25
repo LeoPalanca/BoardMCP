@@ -109,5 +109,11 @@ button:disabled { cursor: wait; opacity: .65; }
 .entry-path { display: block; margin-top: 1px; overflow-wrap: anywhere; color: var(--muted); font-size: 10px; }
 .empty-entry { display: block; color: var(--muted); }
 .scope-note { margin: 13px 0; padding-left: 9px; border-left: 3px solid #c6d7e2; font-size: 11px; }
+.selection-summary { margin: 8px 0; color: var(--blue); font-size: 11px; font-weight: 700; }
+.read-status { margin: 9px 0 5px; padding: 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--wash); color: var(--ink); }
+.read-status[data-state="working"] { border-color: #a8c9dd; background: #edf6fb; }
+.read-status[data-state="done"] { border-color: #a9d0bd; background: #edf7f1; }
+.read-status[data-state="error"] { border-color: #dfb6b6; background: #fff1f1; }
+.read-progress { max-height: 120px; margin: 5px 0 0; padding: 0 0 0 26px; overflow: auto; color: var(--muted); font-size: 11px; }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 footer { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 10px; }

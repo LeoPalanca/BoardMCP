@@ -52,10 +52,13 @@
       </section>
 
       <p class="scope-note">Analyze checks the model and capsule lists in temporary background tabs. Select what to read deeply, then start the selected read. Firefox asks for access to this site the first time.</p>
+      <p id="selection-summary" class="selection-summary" aria-live="polite"></p>
       <div class="actions">
         <button id="start-read" class="primary" type="button">Start agent read</button>
         <button id="download" type="button">Download .md</button>
       </div>
+      <p id="read-status" class="read-status" role="status" aria-live="polite">Select at least one item to begin a read.</p>
+      <ol id="read-progress" class="read-progress" hidden></ol>
     </section>
 
     <footer>The agent choice labels the report. The extension does not launch Claude, Codex, or another service; download the read report to give it to your agent.</footer>
