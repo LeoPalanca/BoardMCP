@@ -24,7 +24,10 @@
       <input id="custom-agent" type="text" maxlength="80" placeholder="Agent name or label" hidden>
     </section>
 
-    <button class="primary" id="analyze" type="button">Analyze</button>
+    <div class="analyze-actions">
+      <button class="primary" id="analyze" type="button">Analyze</button>
+      <button id="analyze-all" type="button">Analyze and read all</button>
+    </div>
     <p id="status" class="status" role="status" aria-live="polite">Analyze reads the model and capsule lists from this signed-in site.</p>
 
     <section id="results" hidden>
@@ -35,33 +38,32 @@
         <p id="page-summary" class="page-summary"></p>
       </div>
 
-      <section class="inventory" aria-labelledby="models-heading">
-        <div class="section-heading">
+      <details id="models-inventory" class="inventory" aria-labelledby="models-heading">
+        <summary class="section-heading">
           <h2 id="models-heading">Data Models</h2>
           <span id="model-count" class="count"></span>
-        </div>
+        </summary>
         <div id="models-list" class="entry-list"></div>
-      </section>
+      </details>
 
-      <section class="inventory" aria-labelledby="capsules-heading">
-        <div class="section-heading">
+      <details id="capsules-inventory" class="inventory" aria-labelledby="capsules-heading">
+        <summary class="section-heading">
           <h2 id="capsules-heading">Capsules</h2>
           <span id="capsule-count" class="count"></span>
-        </div>
+        </summary>
         <div id="capsules-list" class="entry-list"></div>
-      </section>
+      </details>
 
       <p class="scope-note">Analyze checks the model and capsule lists in temporary background tabs. Select what to read deeply, then start the selected read. Firefox asks for access to this site the first time.</p>
       <p id="selection-summary" class="selection-summary" aria-live="polite"></p>
       <div class="actions">
-        <button id="start-read" class="primary" type="button">Start agent read</button>
-        <button id="download" type="button">Download .md</button>
+        <button id="start-read" class="primary" type="button">Start read</button>
       </div>
       <p id="read-status" class="read-status" role="status" aria-live="polite">Select at least one item to begin a read.</p>
       <ol id="read-progress" class="read-progress" hidden></ol>
     </section>
 
-    <footer>The agent choice labels the report. The extension does not launch Claude, Codex, or another service; download the read report to give it to your agent.</footer>
+    <footer>The agent choice labels the report. The extension does not launch Claude, Codex, or another service; it downloads the Markdown report when the read completes.</footer>
   </main>
   <script src="popup.js"></script>
 </body>

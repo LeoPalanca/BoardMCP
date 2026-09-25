@@ -309,7 +309,7 @@ function updateSelectionSummary() {
   byId('selection-summary').textContent = `Selected: ${models} Data Model${models === 1 ? '' : 's'}, ${capsules} Capsule${capsules === 1 ? '' : 's'}.`;
   if (!byId('start-read').disabled) {
     byId('read-status').textContent = models || capsules
-      ? 'Selection ready. Click Start agent read to inspect it.'
+      ? 'Selection ready. Click Start read to inspect it.'
       : 'Select at least one item to begin a read.';
     byId('read-status').dataset.state = '';
   }
@@ -437,7 +437,9 @@ function renderScan(scan) {
   byId('capsule-count').textContent = String(scan.capsules.length);
   renderEntries(byId('models-list'), scan.models, 'model', scan.checkedModels);
   renderEntries(byId('capsules-list'), scan.capsules, 'capsule', scan.checkedCapsules);
-  byId('status').textContent = 'Inventory ready. Select Data Models or Capsules, then start the agent read.';
+  byId('models-inventory').open = false;
+  byId('capsules-inventory').open = false;
+  byId('status').textContent = 'Inventory ready. Expand a list to select items, then choose Start read.';
   byId('read-progress').replaceChildren();
   byId('read-progress').hidden = true;
   updateSelectionSummary();
@@ -452,9 +454,9 @@ function hostPattern(urlText) {
   return `${url.protocol}//${url.host}/*`;
 }
 
-async function runAnalysis() {
-  const button = byId('analyze');
-  button.disabled = true;
+async function runAnalysis({readAll = false} = {}) {
+  const buttons = [byId('analyze'), byId('analyze-all')];
+  for (const button of buttons) button.disabled = true;
   byId('status').textContent = 'Checking the Board model and capsule lists…';
   try {
     const tab = activeTab;
@@ -488,11 +490,16 @@ async function runAnalysis() {
     scan.capsules = uniqueEntries([...(scan.capsules || []), ...(capsuleCatalog?.items || [])]);
     scan.catalogStatus = `Read ${modelCatalog?.items?.length || 0} Data Models and ${capsuleCatalog?.items?.length || 0} Capsules from this site's Board lists.`;
     scan.catalogPages = [modelCatalog, capsuleCatalog];
+    if (readAll) {
+      scan.checkedModels = scan.models.map(item => item.url);
+      scan.checkedCapsules = scan.capsules.map(item => item.url);
+    }
     renderScan(scan);
+    if (readAll) await startRead();
   } catch (error) {
     byId('status').textContent = `Could not read this page: ${error.message}`;
   } finally {
-    button.disabled = false;
+    for (const button of buttons) button.disabled = false;
   }
 }
 
@@ -504,7 +511,7 @@ function readRoute(baseUrl, suffix) {
   return url.href;
 }
 
-async function startAgentRead() {
+async function startRead() {
   collectSelection();
   const selectedModels = lastScan?.models.filter(item => lastScan.checkedModels.includes(item.url)) || [];
   const selectedCapsules = lastScan?.capsules.filter(item => lastScan.checkedCapsules.includes(item.url)) || [];
@@ -515,7 +522,6 @@ async function startAgentRead() {
   }
   const button = byId('start-read');
   button.disabled = true;
-  const originalLabel = button.textContent;
   button.textContent = 'Reading…';
   lastScan.deepRead = [];
   lastScan.deepReadStartedAt = new Date().toISOString();
@@ -549,35 +555,53 @@ async function startAgentRead() {
       renderReport();
     }
     const issues = lastScan.deepRead.filter(page => page.error).length;
-    const completion = `Read complete: ${tasks.length - issues} of ${tasks.length} page${tasks.length === 1 ? '' : 's'} read${issues ? `; ${issues} issue${issues === 1 ? '' : 's'}` : ''}. Markdown report is ready. Download it below for ${selectedAgent()}.`;
+    const completion = `Read complete: ${tasks.length - issues} of ${tasks.length} page${tasks.length === 1 ? '' : 's'} read${issues ? `; ${issues} issue${issues === 1 ? '' : 's'}` : ''}. Downloading the Markdown report for ${selectedAgent()}.`;
     byId('status').textContent = completion;
-    setReadStatus(completion, issues ? 'error' : 'done');
+    setReadStatus(completion, 'working');
+    await downloadReport();
+    const downloaded = `Read complete. board-agent-read.md download started${issues ? ` with ${issues} read issue${issues === 1 ? '' : 's'} listed in the report` : ''}.`;
+    byId('status').textContent = downloaded;
+    setReadStatus(downloaded, issues ? 'error' : 'done');
   } catch (error) {
     const message = `Could not complete the read: ${error.message}`;
     byId('status').textContent = message;
     setReadStatus(message, 'error');
   } finally {
     button.disabled = false;
-    button.textContent = originalLabel;
+    button.textContent = 'Start read';
   }
 }
 
-function downloadReport() {
-  const blob = new Blob([renderReport()], {type: 'text/markdown;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = 'board-agent-read.md';
-  anchor.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-  byId('status').textContent = 'Downloaded board-agent-read.md.';
+async function downloadReport() {
+  const url = URL.createObjectURL(new Blob([renderReport()], {type: 'text/markdown;charset=utf-8'}));
+  let downloadId;
+  const cleanup = () => {
+    browser.downloads.onChanged.removeListener(onChanged);
+    URL.revokeObjectURL(url);
+  };
+  const onChanged = delta => {
+    if (delta.id === downloadId && (delta.state?.current === 'complete' || delta.error)) cleanup();
+  };
+  browser.downloads.onChanged.addListener(onChanged);
+  try {
+    downloadId = await browser.downloads.download({
+      url,
+      filename: 'board-agent-read.md',
+      saveAs: false,
+      conflictAction: 'uniquify'
+    });
+    setTimeout(cleanup, 60000);
+  } catch (error) {
+    cleanup();
+    throw error;
+  }
 }
 
 byId('agent').addEventListener('change', () => { updateAgentField(); void saveAgent(); });
 byId('custom-agent').addEventListener('input', () => { void saveAgent(); });
 byId('analyze').addEventListener('click', () => { void runAnalysis(); });
-byId('start-read').addEventListener('click', () => { void startAgentRead(); });
-byId('download').addEventListener('click', downloadReport);
+byId('analyze-all').addEventListener('click', () => { void runAnalysis({readAll:true}); });
+byId('start-read').addEventListener('click', () => { void startRead(); });
 byId('results').addEventListener('change', event => {
   if (event.target.matches('input[type="checkbox"]')) {
     updateSelectionSummary();
@@ -589,5 +613,6 @@ async function initializePopup() {
   const [tab] = await browser.tabs.query({active:true, currentWindow:true});
   activeTab = tab || null;
   byId('analyze').disabled = !activeTab;
+  byId('analyze-all').disabled = !activeTab;
 }
 void initializePopup();

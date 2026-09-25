@@ -26,7 +26,7 @@ Column labels follow the Board session language. Grid reads report detected filt
 
 The extension is in [`firefox-extension/`](firefox-extension/). Load it in the Firefox profile where you are signed in to Board. **Analyze** requests access to only the active page's origin, then reads the Data Models and Capsules lists in background tabs without moving the open page. See its [README](firefox-extension/README.md) for setup and permission details.
 
-After inventory, select Data Models and Capsules and choose **Start agent read**. It reads visible Entity members, Cube metadata, Relationships analysis, and selected Capsule page contents, then lets you download a Markdown report labeled for Claude, Codex, or a custom agent. It does not call those agents or edit Board data. Paginated and virtualized content may be partial.
+After inventory, expand the collapsed Data Models and Capsules lists to select a scope and choose **Start read**. Or use **Analyze and read all** to select and read every discovered item. Both read visible Entity members, Cube metadata, Relationships analysis, and selected Capsule page contents, then automatically download a Markdown report labeled for Claude, Codex, or a custom agent. The extension does not call those agents or edit Board data. Paginated and virtualized content may be partial.
 
 Future improvements: improve coverage of paginated and virtualized grids, capture full DataView cell layouts with filters and dimensions, and add a structured JSON snapshot with explicit completeness markers. The Markdown report remains a human-readable handoff. The current connector and extension remain read-only; any future edit capability will be a separate addition.
 

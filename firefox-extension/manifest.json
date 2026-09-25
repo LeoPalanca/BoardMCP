@@ -3,7 +3,7 @@
   "name": "Board Snapshot Assistant",
   "version": "0.1.0",
   "description": "Read-only Board inventory and selected-scope reports for an AI-assisted review.",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "scripting", "storage", "downloads"],
   "optional_host_permissions": ["*://*/*"],
   "action": {
     "default_title": "Analyze Board",
