@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Board Snapshot Assistant",
+  "version": "0.1.0",
+  "description": "Read-only initial inventory of the active Board page for an AI-assisted review.",
+  "permissions": ["activeTab", "scripting", "storage", "clipboardWrite"],
+  "action": {
+    "default_title": "Analyze the active page",
+    "default_popup": "popup.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "board-snapshot-assistant@biosmanagement.it",
+      "strict_min_version": "115.0"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Board Snapshot Assistant</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">READ ONLY · 0.1.0</div>
+      <h1>Board Snapshot</h1>
+      <p class="intro">Choose where you’ll review the scan, then inspect the active Firefox tab.</p>
+    </header>
+
+    <section class="agent-card" aria-labelledby="agent-heading">
+      <label id="agent-heading" for="agent">Reviewing agent</label>
+      <select id="agent">
+        <option value="claude">Claude</option>
+        <option value="codex">Codex</option>
+        <option value="personalized">Personalized</option>
+      </select>
+      <input id="custom-agent" type="text" maxlength="80" placeholder="Agent name or label" hidden>
+    </section>
+
+    <button class="primary" id="analyze" type="button">Analyze active tab</button>
+    <p id="status" class="status" role="status" aria-live="polite">The scan runs only after you click Analyze.</p>
+
+    <section id="results" hidden>
+      <div class="page-card">
+        <div class="eyebrow">ACTIVE TAB</div>
+        <h2 id="page-title"></h2>
+        <p id="page-url" class="page-url"></p>
+        <p id="page-summary" class="page-summary"></p>
+      </div>
+
+      <section class="inventory" aria-labelledby="models-heading">
+        <div class="section-heading">
+          <h2 id="models-heading">Data Models</h2>
+          <span id="model-count" class="count"></span>
+        </div>
+        <div id="models-list" class="entry-list"></div>
+      </section>
+
+      <section class="inventory" aria-labelledby="capsules-heading">
+        <div class="section-heading">
+          <h2 id="capsules-heading">Capsules</h2>
+          <span id="capsule-count" class="count"></span>
+        </div>
+        <div id="capsules-list" class="entry-list"></div>
+      </section>
+
+      <p class="scope-note">This first pass inspects links and labels on the active page only. Checked items mark a future deep-scan scope; this version does not navigate or scan their contents.</p>
+      <div class="actions">
+        <button id="copy" type="button">Copy report for agent</button>
+        <button id="download" type="button">Download .md</button>
+      </div>
+    </section>
+
+    <footer>Nothing is sent to Claude, Codex, or another service. Reports stay in this Firefox session until you copy or download them.</footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

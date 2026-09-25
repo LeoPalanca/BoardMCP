@@ -21,13 +21,13 @@ The connector navigates that dedicated window. Use your usual browser for other 
 
 Column labels follow the Board session language. Grid reads report detected filters, paging, and possible additional rows. Cube values come from existing DataView layouts and can reflect their filters, selections, aggregations, and visible dimensions; they are not a guaranteed dump of every stored cell. A Cube with no matching screen returns no view results, which does not by itself prove the Cube is empty. No model edits or procedures are exposed. Requests are serialized within each MCP process; avoid simultaneous reads from multiple MCP processes.
 
-## Future plan: read-only Firefox scan and report
+## Firefox extension: initial read-only inventory
 
-The next planned stage is a user-controlled, read-only Firefox scanning flow. It will first show the available Data Models and Capsules. The user can select which ones to inspect, then run a deeper scan of the selected scope. The scan should collect the available model and capsule structure, Entity members, hierarchy and occurrence relationship analysis, Cube dimensions, and values shown in capsule DataViews.
+The proof-of-concept extension is in [`firefox-extension/`](firefox-extension/). Load it temporarily in the Firefox profile where you are signed in to Board. It works from the active page's origin instead of assuming `localhost`; it uses a user-clicked `activeTab` grant, so no permanent access to every host is requested. See its [README](firefox-extension/README.md) for setup and limits.
 
-The scan should export a human-readable Markdown report and a structured JSON snapshot. The report should identify its scan time and scope, and mark each section complete, partial, or unavailable. DataView values can be filtered, aggregated, or limited by Board's rendered layout, so the report must retain those limits instead of claiming a full stored-cell export. This scan and export flow is not implemented yet.
+The initial pass inventories Data Model and Capsule routes visible on the current page, lets you select candidates for a later deep scan, and copies or downloads a Markdown handoff labeled for Claude, Codex, or a custom agent. It does not call those agents, navigate to other pages, or edit Board data.
 
-The JSON snapshot should preserve Board identifiers, selections, relationships, and completeness details so a future MCP edit workflow can use the scan as context. Any future edit capability will be a separate addition; the current connector remains read-only.
+Next, extend the selected scope into a read-only deep scan of model and capsule structure, Entity members, hierarchy and occurrence analysis, Cube dimensions, and capsule DataView values. Export Markdown for people and a structured JSON snapshot that preserves Board identifiers, selections, and completeness details. DataView values can be filtered, aggregated, or limited by Board's rendered layout, so reports must not claim a full stored-cell export. The current connector remains read-only; any future edit capability will be a separate addition.
 
 ## Verification
 
