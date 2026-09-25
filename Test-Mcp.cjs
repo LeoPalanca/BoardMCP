@@ -19,9 +19,9 @@ function request(method, params) {
 }
 (async () => {
   try {
-    assert.equal((await request('initialize',{protocolVersion:'2025-06-18',capabilities:{},clientInfo:{name:'board-smoke',version:'1'}})).result.serverInfo.version,'1.1.0');
+    assert.equal((await request('initialize',{protocolVersion:'2025-06-18',capabilities:{},clientInfo:{name:'board-smoke',version:'1'}})).result.serverInfo.version,'1.2.0');
     child.stdin.write(JSON.stringify({jsonrpc:'2.0',method:'notifications/initialized'})+'\n');
-    assert.equal((await request('tools/list',{})).result.tools.length,3);
+    assert.equal((await request('tools/list',{})).result.tools.length,6);
     for (const name of ['list_models','list_entities','list_cubes']) {
       const reply = await request('tools/call',{name,arguments:name==='list_models'?{}:{model:'Leonardo'}});
       assert.equal(reply.result.isError,false,reply.result.content[0].text);

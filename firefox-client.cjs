@@ -1,5 +1,5 @@
 class FirefoxClient {
-  constructor() { this.nextId = 0; this.pending = new Map(); }
+  constructor() { this.nextId = 0; this.pending = new Map(); this.events = []; }
   async connect() {
     this.socket = new WebSocket('ws://127.0.0.1:9228/session');
     this.socket.addEventListener('close', () => {
@@ -8,6 +8,13 @@ class FirefoxClient {
     });
     this.socket.addEventListener('message', event => {
       const msg = JSON.parse(event.data);
+      if (msg.method === 'network.responseCompleted') this.events.push({
+        method: msg.method,
+        params: {
+          request: { request: msg.params?.request?.request, url: msg.params?.request?.url },
+          response: { status: msg.params?.response?.status },
+        },
+      });
       const pending = this.pending.get(msg.id);
       if (!pending) return;
       this.pending.delete(msg.id); clearTimeout(pending.timer);
