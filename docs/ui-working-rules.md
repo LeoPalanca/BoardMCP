@@ -88,3 +88,11 @@ belong in the linked user knowledge base, not hardcoded connector code.
 - Entity-list Item number is the current member count, not the maximum capacity. Verify Max item number in each saved Properties panel.
 - Saving a nonzero capacity on an empty entity was verified. This does not establish that resizing populated entities or shortening widths is safe.
 - Relationships tree nesting uses a different perspective from business rollup terminology: dragging the functional parent onto the child places that parent beneath the child root. MCP parent/child labels describe rendered tree levels; preserve this distinction in reports.
+
+## Capsule and screen creation (verified 2026-10-01)
+
+- The Capsules Create icon opens a menu with Capsule and Folder. Wait for Create new Capsule after selecting Capsule; the modal may appear after the menu closes.
+- Check the capsule name, Default Data Model and aspect ratio before Create. Creation generates Home and opens Design mode; wait for its resource tree.
+- Resources / Add Screen opens Create screen. Verify Linked Data Model, aspect ratio and optional Masks, then save with OK. Wait for the dialog to close and the new screen name to appear.
+- Reopening a capsule can start in Play mode, which does not expose the designer resource list. F4 toggles Design mode in this session. Wait for the loaded Screens tree before interpreting an initially empty list.
+- Verify persistence by reopening and reading saved screen names and model context. Screen existence does not establish that navigation objects, data layouts, formulas or selections have been configured.
