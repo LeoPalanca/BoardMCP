@@ -12,6 +12,10 @@ The connector navigates that dedicated window. Use your usual browser for other 
 
 ## Tools and limits
 
+Agents working with Board should read [UI working rules](docs/ui-working-rules.md)
+for verified navigation, selection, loading, custom-time and Data Reader findings.
+Keep this document and reusable connector helpers updated as new work proves them.
+
 - list_models: model links rendered on the authenticated Data Models page.
 - list_capsules: Capsule screens discovered in the root list and nested folders, with folder paths. This lists Capsule routes; it does not inspect their contents.
 - list_entities(model): entity grid metadata, including member counts and physical names.
