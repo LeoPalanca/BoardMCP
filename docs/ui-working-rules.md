@@ -96,3 +96,16 @@ belong in the linked user knowledge base, not hardcoded connector code.
 - Resources / Add Screen opens Create screen. Verify Linked Data Model, aspect ratio and optional Masks, then save with OK. Wait for the dialog to close and the new screen name to appear.
 - Reopening a capsule can start in Play mode, which does not expose the designer resource list. F4 toggles Design mode in this session. Wait for the loaded Screens tree before interpreting an initially empty list.
 - Verify persistence by reopening and reading saved screen names and model context. Screen existence does not establish that navigation objects, data layouts, formulas or selections have been configured.
+
+## Screen design and navigation (verified 2026-10-01)
+
+- Drag Label/Button objects from Screen Objects onto the canvas; wait for the new toolbox host before selecting/configuring it. New objects and their edits require the screen-level Save action.
+- Select the correct property tab explicitly: button captions/actions are in Data, geometry/colors/fonts in Design. Wait for the intended controls; tree loading or previous-tab text can persist briefly after switching screens.
+- Configure Go to Screen with an existing target and enable Same tab explicitly. The default was unchecked. Test outward and return actions in Play mode and verify capsule route and unchanged tab count.
+- Avoid center-click selection of overlapping or oversized objects. Layers row captions alone did not select an object; the row checkbox did. Verify the selected toolbox host/name before editing, and clear previous selections.
+- Verify saved numeric geometry and font family against the intended object. Native entry/selection can fail silently or apply to an overlapping object. Visible Angular form inputs accepted native value setters plus input/change/blur events when keyboard editing was unreliable; always inspect the resulting rendered style and saved state.
+- Color preview text is not a reliable color editor. Open its color configurator and edit the actual color-picker input. Fonts use the Caption font editor. Choose the exact family row and verify the selected family rather than trusting a pointer click.
+- Close transient property overlays by clicking outside them; Escape and property-tab clicks did not consistently reset their state. Reopening the saved screen recovered a stale font editor. Collapse other property sections when an editor trigger lies outside the viewport.
+- Copy Object / Paste Object preserved button appearance and actions across screens in the same capsule. Keyboard copy/paste was inconsistent; verify each pasted object and its target. Duplication does not guarantee selection of the new object.
+- Custom 1920x1080 exposes numerical width/height, but this session showed 16:9 again after saving/reopening identical dimensions. Verify logical dimensions independently of the dropdown label; committing an unchanged dimension can hide the custom inputs as the ratio is recognized.
+- Save after edits have committed; reopen and inspect persistence, dimensions, background and typography. Restore temporary viewport overrides and leave the user's intended screen/mode open.
