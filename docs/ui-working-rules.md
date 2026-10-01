@@ -80,3 +80,11 @@ loaded-state waits. Generalize the proven parts of session scripts after review;
 do not promote an unrestricted script runner or silently add mutations to
 existing read-only tools. Model-specific configuration and execution results
 belong in the linked user knowledge base, not hardcoded connector code.
+
+## Ordinary entity creation (verified 2026-10-01)
+
+- The New Entity form requires an assigned Group. The Group dropdown permits creating a group by typing its name in the search input and pressing Enter; typing alone does not select/save it. Existing groups can be selected from dropdown rows.
+- After Create, wait for the saved entity Properties state and updated inventory. Closing a modal can leave a transient overlay; wait for the intended next form rather than assuming the next click took effect.
+- Entity-list Item number is the current member count, not the maximum capacity. Verify Max item number in each saved Properties panel.
+- Saving a nonzero capacity on an empty entity was verified. This does not establish that resizing populated entities or shortening widths is safe.
+- Relationships tree nesting uses a different perspective from business rollup terminology: dragging the functional parent onto the child places that parent beneath the child root. MCP parent/child labels describe rendered tree levels; preserve this distinction in reports.
