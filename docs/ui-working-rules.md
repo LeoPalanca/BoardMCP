@@ -131,3 +131,13 @@ Evidence scope: authenticated local Board capsule designer and Play mode, 2026-1
 - On an unmasked screen or the Mask editor, the own toolbox-host order matched the selectable level-2 layer rows. A session helper checked equal counts, found the intended saved ID, selected its corresponding checkbox and verified the resulting target ID. Do not apply this mapping on a masked report where hosts include inherited objects but Layers exposes only own objects.
 - For an ordinary photograph, centered Uniform/contain preserves the full composition. Use matching aspect ratio for the image label when desired, set no repeat and inspect saved background-size: contain. Uniform to fill/cover instead crops to the label; use that intentionally for padded logos rather than assuming it fits all images.
 - Reopening the saved screen recomputes the fit ratio after mask/layout changes; review both the full logical canvas and the restored user viewport. Fit-to-width can put the footer below the fold on a shorter viewport even with the required 1920x1080 logical canvas.
+
+## SQL / ODBC reader prerequisites (documentation and Windows inspection, 2026-10-02)
+
+- Official references: https://help.board.com/v15/docs/data-sources and https://help.board.com/docs/create-a-data-reader-protocol . These semantics are documentation-derived, not a newly verified SQL reader UI flow.
+- Inspect existing platform Data Sources before creating duplicates. On-premise ODBC requires a 64-bit System DSN on the Board host; cloud-to-local needs Data Pipeline/OPC. User-account SQL success is not proof of Board service-account access.
+- Read DSN metadata with a strict allowlist (name, platform, driver, server, database). Do not dump DSN attributes, connection strings or credentials. Get-OdbcDsn can return no useful inventory inside the sandbox; report limits instead of claiming no DSNs exist.
+- Newly created Data Sources may require refreshing/recreating the reader before selection. Verify Connect and Browse against the intended database; Browse shows only up to 500 source rows.
+- Entity Add New Item creates missing members; Discard New Item rejects records for unknown codes. Description Replace updates existing labels; Read only fills empty labels. Validate dimensions before fact loads.
+- Numeric Cube Add accumulates existing values. Replace Time Slice clears incoming periods across all other dimensions: a company-filtered/partial-period source must not be used as a full-period refresh without an explicitly bounded loading strategy. Verify totals and repeatability.
+- Enable reject logging and confirm member capacities: overflow discards excess members. Preview success alone does not establish a complete load.
